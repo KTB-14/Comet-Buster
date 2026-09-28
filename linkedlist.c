@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <SDL.h>
+
 #include "linkedlist.h"
 
 /* Initialisation of the list
