@@ -15,21 +15,45 @@ list_ptr list_new(void)
  * */
 list_ptr list_add(sprite_t sprite, list_ptr list)
 {
-  return NULL;
+  //crée un pointeur 'nouveau' qui va contenir l'adresse de la nouvelle case (data +next)
+  list_ptr nouveau;
+  
+  // on reserve en mémoire la place nécessaire pour une case (data + next) et on stocke dans nouveau
+  nouveau = malloc(sizeof(s_list_node_t));
+  
+  // si aucune adresse n'est retournée , on garde l'ancienne liste
+  if (nouveau == NULL){
+    return list;
+  }
+  
+  // on met le sprite dans data de la nouvelle case
+  nouveau->data = sprite;
+
+  // next pointe vers la première case de l'ancienne liste
+  nouveau->next = list;
+  
+  // on retourne la nouvelle premiere case
+  return nouveau;
 }
 
 /* Return true if the list is empty
  * */
 bool list_is_empty(list_ptr l)
 {
-  return true;
+  //si l ne pointe vers aucune adresse alors l est vide
+  return l == NULL;
 }
 
 /* Return the next cel in list or NULL
  * */
 list_ptr list_next(list_ptr l)
 {
-  return NULL;
+  // si aucne case actuel, impossible d'aller au prochain
+  if (l == NULL){
+    return NULL;
+  }
+  // va a la case suivante grace à l'adresse dans next
+  return l->next;
 }
 
 /* Search the first cel of the list & 
@@ -37,7 +61,12 @@ list_ptr list_next(list_ptr l)
  * */
 sprite_t list_head_sprite(list_ptr l)
 {
-  return NULL;
+  // si aucune case actuel alors aucune liste à récupérer
+  if (l == NULL){
+    return NULL;
+  } 
+  // récupère le sprite dans data
+  return l->data;
 }
 
 /* Search the last cel of a list 
@@ -53,6 +82,7 @@ sprite_t list_pop_sprite(list_ptr * l)
  * */
 void list_remove(list_ptr elt, list_ptr *l)
 {
+
 }
 
 /* Wipe out a list. 
