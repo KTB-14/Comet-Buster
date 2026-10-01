@@ -8,8 +8,13 @@
 #include "collider.h"
 #include "linkedlist.h"
 
-#define SPACESHIP_BOOST     0.25
-#define SPACESHIP_FRICTION  0.002
+
+// #define SPACESHIP_BOOST     0.25
+// on utilise une variable pour pouvoir modifier l'acceleration pendant le jeu
+float spaceship_boost = 0.25; // ==========================================================
+// #define SPACESHIP_FRICTION  0.002
+// on augmente la friction pour que le vaisseau ralentisse plus vite
+#define SPACESHIP_FRICTION  0.01 // =======================================================
 #define BULLET_LIFETIME     25
 #define BULLET_SPEED        10
 #define DEFAULT_PTSIZE      24
@@ -28,6 +33,8 @@ list_ptr l_sprite_explosion;
 list_ptr l_sprite_text;
 list_ptr l_sprite_life_counter;
 list_ptr l_score_el = NULL;
+// on garde le texte de l'acceleration pour pouvoir le modifier à l'écran
+list_ptr l_boost_el = NULL; // ================================================================
 
 bool shoot_again;
 int score;
@@ -41,6 +48,7 @@ void draw_explosion(int i,int j);
 void draw_fire(void);
 void draw_life_counter(void);
 void draw_score(TTF_Font *font);
+void draw_boost(TTF_Font *font); //==========================================================================================
 void next_level(TTF_Font *font);
 void draw_sprites(list_ptr *l_sprite);
 void split(sprite_t old_comet, list_ptr **l_sprite_comet, enum sprite_type new_type);
@@ -92,7 +100,24 @@ void general_events(char* keys) {
           case SDLK_d:
             GDB();
             break;
-        }
+          
+            case SDLK_p:
+            // on augmente l'acceleration sans dépasser 0.50
+            if (spaceship_boost < 0.50){
+              spaceship_boost += 0.05;
+            }
+            printf("Acceleration : %.2f\n", spaceship_boost);
+            break;
+
+          case SDLK_m:
+            // on diminue l'acceleration sans descendre en dessous de 0.10
+            if (spaceship_boost > 0.10){
+              spaceship_boost -= 0.05;
+            }
+            printf("Acceleration : %.2f\n", spaceship_boost);
+            break;        
+          }
+          
         keys[event.key.keysym.sym] = 1;
         break;
     }
@@ -106,11 +131,15 @@ void game_events(char* key) {
   SDLKey tabkey[] = {SDLK_UP,SDLK_DOWN,SDLK_LEFT,SDLK_RIGHT, SDLK_SPACE};
   int i;
   if (key[tabkey[0]]) { //UP
-    sprite_boost(sprite_ship, SPACESHIP_BOOST);
+    // sprite_boost(sprite_ship, SPACESHIP_BOOST);
+    // on utilise donc la valeur actuelle de l'acceleration pour faire avancer le vaisseau
+    sprite_boost(sprite_ship, spaceship_boost); //====================================================
   }
 
   if (key[tabkey[1]]) { //DOWN
-    sprite_boost(sprite_ship, -SPACESHIP_BOOST);
+    // sprite_boost(sprite_ship, -SPACESHIP_BOOST);
+    // on utilise donc la valeur actuelle de l'acceleration pour faire reculer le vaisseau
+    sprite_boost(sprite_ship, -spaceship_boost); //===================================================
   }
   if (key[tabkey[2]]) { // LEFT
     sprite_turn_left(sprite_ship);
@@ -169,6 +198,31 @@ void draw_score(TTF_Font * font) {
   if (l_score_el)
     list_remove(l_score_el, &l_sprite_text);
   l_score_el = l_sprite_text = list_add(sprite, l_sprite_text);
+}
+
+//==============================================================================================================
+void draw_boost(TTF_Font *font)
+{
+  SDL_Surface *boost_surf;
+  SDL_Color boost_color = {255, 255, 255, 0};
+  char boost_text[100];
+  sprite_t sprite;
+
+  // on prépare le texte avec la valeur actuelle de l'acceleration
+  sprintf(boost_text, "Acceleration : %.2f", spaceship_boost);
+
+  // on transforme le texte en image pour pouvoir l'afficher dans le jeu
+  boost_surf = TTF_RenderText_Solid(font, boost_text, boost_color);
+
+  // on place le texte à l'écran
+  sprite = sprite_new_text(boost_surf, 150, 5);
+
+  // on supprime l'ancien texte avant d'afficher la nouvelle valeur
+  if (l_boost_el)
+    list_remove(l_boost_el, &l_sprite_text);
+
+  // on ajoute le nouveau texte dans la liste des textes à afficher
+  l_boost_el = l_sprite_text = list_add(sprite, l_sprite_text);
 }
 
 /* Draw the life counter sprites
@@ -424,6 +478,8 @@ int main(int argc, char* argv[]) {
 
     general_events(key);
     game_events(key);
+    // on met à jour l'acceleration affichée à l'écran
+    draw_boost(font_score); // ==============================================================================
 
     /* draw the background */
     SDL_BlitSurface(bg, NULL, screen, &rcBg);
