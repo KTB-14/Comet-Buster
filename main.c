@@ -45,6 +45,8 @@ void next_level(TTF_Font *font);
 void draw_sprites(list_ptr *l_sprite);
 void split(sprite_t old_comet, list_ptr **l_sprite_comet, enum sprite_type new_type);
 void split_and_score(list_ptr element, list_ptr *l_sprite_comet, bool update_score);
+void save_score(const char *nickname, int player_score); //==================================================================
+void load_scores(void); //===================================================================================================
 
 /* SDL Initialisation. Create windows and so on
  *  return 0 if everything is ok, otherwise 1.
@@ -309,7 +311,48 @@ void split(sprite_t old_comet, list_ptr **l_sprite_comet, enum sprite_type new_t
   **l_sprite_comet = list_add(second, **l_sprite_comet);
 }
 
+// =============================================================================================================================
+void save_score(const char *nickname, int player_score)
+{
+  FILE *fichier;
 
+  // on ouvre le fichier pour ajouter un score
+  fichier = fopen("scores.txt", "a");
+
+  // si le fichier ne s'ouvre pas, on quitte la fonction
+  if (fichier == NULL){
+    return;
+  }
+
+  // on écrit le nom et le score dans le fichier
+  fprintf(fichier, "%s:%d\n", nickname, player_score);
+
+  // on ferme le fichier
+  fclose(fichier);
+}
+
+// =============================================================================================================================
+void load_scores(void)
+{
+  FILE *fichier;
+  char ligne[100];
+
+  // on ouvre le fichier pour lire les scores
+  fichier = fopen("scores.txt", "r");
+
+  // si le fichier n'existe pas, on quitte la fonction
+  if (fichier == NULL){
+    return;
+  }
+
+  // on lit et affiche chaque ligne du fichier
+  while (fgets(ligne, 100, fichier) != NULL){
+    printf("%s", ligne);
+  }
+
+  // on ferme le fichier
+  fclose(fichier);
+}
 
 int main(int argc, char* argv[]) {
   SDL_Surface *temp, *bg;
@@ -342,6 +385,9 @@ int main(int argc, char* argv[]) {
   // create the text sprites list
   l_sprite_text = list_new();
 
+  // on affiche les scores déjà enregistrés =====================================================================================================
+  load_scores();
+  
   // initialize score and score sprite
   score = 0;
   draw_score(font_score);
@@ -422,6 +468,7 @@ int main(int argc, char* argv[]) {
 	} else {
           printf(" ============ Game Over ============= \n");
           printf("Score: you reached level %d with %d points\n",level,score);
+          save_score("Brook", score);
           fflush(stdout);
           gameover = true;
         }
