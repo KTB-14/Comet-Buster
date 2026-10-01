@@ -151,6 +151,20 @@ void list_remove(list_ptr elt, list_ptr *l)
  * */
 void list_free(list_ptr l)
 {
+  list_ptr actuel = l;
+  
+  while (actuel!=NULL){
+    //on sauvegarde la prochaine case car après avoir libéré actuel
+    //on ne pourra plus utiliser actuel->next pour la retrouver
+    list_ptr suivant = actuel->next;
+    
+    sprite_free(actuel->data);
+  
+    free(actuel);
+
+    //on fait pointé actuel vers la case sauvegardée pour continuer le parcours
+    actuel = suivant;
+  }
 }
 
 /* Return the length of a list
@@ -173,6 +187,24 @@ int list_length(list_ptr l)
  * */
 void list_reverse(list_ptr * l)
 {
+  // si l ne pointe vers aucune liste, on a rien à supprimer
+  if (l== NULL){
+    return;
+  }
+
+  list_ptr precedent = NULL;
+  list_ptr actuel = *l;
+  list_ptr suivant;
+
+  while (actuel!=NULL){
+    //on garde la prochaine case, puis on inverse le lien et on avance
+    suivant = actuel->next;
+    actuel->next = precedent;
+    precedent = actuel;
+    actuel = suivant;
+  }
+  //precedent devient donc la nouvelle premiere case de la liste
+  *l = precedent;
 }
 
 /* Copy a list to another one. 
@@ -180,5 +212,22 @@ void list_reverse(list_ptr * l)
  * */
 list_ptr list_clone(list_ptr list)
 {
-  return NULL;
+  //on crée une nouvelle liste vide qui va contenir  les nouvelles cases
+  list_ptr copie = list_new();
+
+  //on va parcourir ensuite la liste original case par case
+  list_ptr actuel = list;
+  
+  //tant que actuel pointe vers une case, il reste une case à copier
+  while(actuel!=NULL){
+    //donc la on crée une nouvelle case contenant le meme sprite
+    copie=list_add(actuel->data,copie);
+    
+    //on avance
+    actuel=actuel->next;
+  }
+  //comme list_add ajoute au debut on inverse pour retrouver le meme ordre
+  list_reverse(&copie);
+
+  return copie;
 }
