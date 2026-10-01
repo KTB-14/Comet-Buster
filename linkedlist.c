@@ -75,14 +75,75 @@ sprite_t list_head_sprite(list_ptr l)
  * */
 sprite_t list_pop_sprite(list_ptr * l)
 {
-  return NULL;
+  // si l ne pointe vers aucune liste, on a rien à supprimer
+  if (l== NULL){
+    return NULL;
+  }
+  // si la liste est vide, on a rien à supprimer
+  if (*l== NULL){
+    return NULL;
+  }
+  
+  // on fait pointé actuel vers la premère case de la liste
+  list_ptr actuel = *l;
+
+  //et on avance jusqu'a la dernière case
+  while (actuel->next != NULL){
+    actuel = actuel->next;
+  }
+
+  //a la sortie de la boucle, actuel pointe vers la dernière case
+  sprite_t sprite = actuel->data;
+
+  //ensuite on supprime la dernière case de la liste 
+  list_remove(actuel, l);
+  
+  // et on retourne le sprite qui était dans la case supprimée
+  return sprite;
 }
 
 /* Remove the given cel in a list
  * */
 void list_remove(list_ptr elt, list_ptr *l)
 {
+  // si l ne pointe vers aucune liste, on a rien à supprimer
+  if (l== NULL){
+    return;
+  }
 
+  // si elt ne pointe vers aucune case, on a rien à supprimer
+  if (elt== NULL){
+    return;
+  }
+
+  // si la liste est vide, on a rien à supprimer
+  if (*l== NULL){
+    return;
+  }
+
+  // si elt est la première case
+  if (*l== elt){
+    // la première case devient celle qui vient après elt
+    *l=elt->next;
+
+    // et ensuite on doit libérer la mémoire qui était occupé par elt
+    free(elt);
+    return;
+  }
+
+  // on parcourt ensuite la liste pour trouver lacase avant elt
+  list_ptr actuel = *l;
+  while (actuel->next != NULL && actuel->next != elt){
+    actuel = actuel->next;
+  }
+
+  // si la case suivante est elt, on la retire de la chaine
+  if (actuel->next == elt){
+    actuel->next = elt->next;
+
+    //ensuite on libère la mémoire de la case elt
+    free(elt);
+  }
 }
 
 /* Wipe out a list. 
@@ -96,7 +157,16 @@ void list_free(list_ptr l)
  * */
 int list_length(list_ptr l)
 {
-  return 0;
+  int longueur = 0;
+
+  list_ptr actuel = l;
+
+  while (actuel!=NULL){
+    longueur++;
+    actuel=actuel->next;
+  }
+
+  return longueur;
 }
 
 /* Reverse the order of a list
